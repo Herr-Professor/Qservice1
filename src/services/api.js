@@ -2,7 +2,7 @@
  * API service for interacting with the backend
  */
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://qserver-ii0a.onrender.com/api';
 
 /**
  * Login or create a user via Telegram data
