@@ -3,6 +3,7 @@
  */
 
 const API_URL = 'https://qserver-ii0a.onrender.com/api';
+export { API_URL };
 
 /**
  * Login or create a user via Telegram data
@@ -12,29 +13,44 @@ const API_URL = 'https://qserver-ii0a.onrender.com/api';
  */
 export const loginUser = async (initData, startParam = null) => {
   try {
+    console.log(`Attempting to login user with API URL: ${API_URL}`);
+    
+    if (!initData || !initData.initData) {
+      console.error('Missing initData in loginUser function');
+      throw new Error('Missing Telegram authentication data');
+    }
+    
     const payload = {
-      initData
+      initData: initData.initData
     };
     
     // If we have a start parameter (for referrals), include it
     if (startParam) {
       payload.start_param = startParam;
+      console.log(`Including start_param in login request: ${startParam}`);
     }
     
+    console.log(`Making fetch request to: ${API_URL}/auth/check_and_create_user`);
     const response = await fetch(`${API_URL}/auth/check_and_create_user`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Origin': window.location.origin
       },
       body: JSON.stringify(payload),
     });
     
+    console.log(`Received response with status: ${response.status}`);
+    
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to login user');
+      const errorData = await response.json().catch(e => ({ error: 'Failed to parse error response' }));
+      console.error('API login error:', errorData);
+      throw new Error(errorData.error || `Server responded with status: ${response.status}`);
     }
     
-    return await response.json();
+    const userData = await response.json();
+    console.log('Login successful, user data received');
+    return userData;
   } catch (error) {
     console.error('Error logging in user:', error);
     throw error;

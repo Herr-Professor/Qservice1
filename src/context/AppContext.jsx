@@ -11,7 +11,8 @@ import {
   withdrawEscrow,
   cancelEscrow,
   listEscrows,
-  getUserReferrals
+  getUserReferrals,
+  API_URL
 } from '../services/api';
 
 // Export the context directly so it can be imported in other files
@@ -51,37 +52,65 @@ export const AppContextProvider = ({ children }) => {
   useEffect(() => {
     const initUser = async () => {
       try {
+        console.log("Starting app initialization...");
+        
         // Get Telegram user data from WebApp API
-        const telegramInitData = window.Telegram.WebApp.initData;
+        console.log("Attempting to access Telegram WebApp API...");
+        const telegramInitData = window.Telegram?.WebApp?.initData;
+        console.log("Telegram initData available:", !!telegramInitData);
         
         // Get start parameter if available from Telegram deeplink
         let startParam = null;
         if (window.Telegram?.WebApp?.initDataUnsafe?.start_param) {
           startParam = window.Telegram.WebApp.initDataUnsafe.start_param;
           console.log("Referral code from start_param:", startParam);
+        } else {
+          console.log("No start_param available");
         }
         
         // Login or create user
         setLoading(true);
+        console.log("Calling backend API for user login/creation...");
+        console.log("API URL:", API_URL || 'Not defined');
+        
+        // Log the initData being sent to the server (NEVER do this in production with real user data)
+        console.log("Sending data:", { initData: telegramInitData ? "[AVAILABLE]" : "[NOT AVAILABLE]" });
+        
         const userData = await loginUser({ initData: telegramInitData }, startParam);
+        console.log("User data received:", userData ? "Success" : "Failed");
         
         setUser(userData);
         
         // Fetch user's mining status
+        console.log("Fetching mining status...");
         await refreshMiningStatus(userData.telegram_id);
         
         // Fetch user's inventory
+        console.log("Fetching inventory...");
         await refreshInventory(userData.telegram_id);
         
         // Fetch user's escrows
+        console.log("Fetching escrows...");
         await refreshEscrows(userData.telegram_id);
         
         // Fetch user's referrals
+        console.log("Fetching referrals...");
         await refreshReferrals(userData.telegram_id);
         
+        console.log("App initialization completed successfully");
         setError(null);
       } catch (error) {
         console.error('Error initializing user:', error);
+        // Add more detailed error information
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+          response: error.response ? {
+            status: error.response.status,
+            data: error.response.data
+          } : 'No response object'
+        });
         setError('Failed to initialize app. Please try again later.');
       } finally {
         setLoading(false);
@@ -89,7 +118,10 @@ export const AppContextProvider = ({ children }) => {
     };
 
     if (window.Telegram?.WebApp?.initData) {
+      console.log("Telegram WebApp detected, initializing...");
       initUser();
+    } else {
+      console.warn("No Telegram WebApp detected. Running in standalone mode or development environment.");
     }
   }, []);
 

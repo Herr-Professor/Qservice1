@@ -19,37 +19,57 @@ import BottomNavBar from './components/BottomNavBar';
 import LoadingScreen from './components/LoadingScreen';
 import ErrorScreen from './components/ErrorScreen';
 import TelegramLoginButton from './components/TelegramLoginButton';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const AppContent = () => {
   const { loading, error, user } = useAppContext();
 
   useEffect(() => {
-    // Set theme colors based on Telegram WebApp theme
-    document.documentElement.style.setProperty('--tg-theme-bg-color', WebApp.themeParams.bg_color);
-    document.documentElement.style.setProperty('--tg-theme-text-color', WebApp.themeParams.text_color);
-    document.documentElement.style.setProperty('--tg-theme-hint-color', WebApp.themeParams.hint_color);
-    document.documentElement.style.setProperty('--tg-theme-link-color', WebApp.themeParams.link_color);
-    document.documentElement.style.setProperty('--tg-theme-button-color', WebApp.themeParams.button_color);
-    document.documentElement.style.setProperty('--tg-theme-button-text-color', WebApp.themeParams.button_text_color);
-    document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', WebApp.themeParams.secondary_bg_color);
+    try {
+      // Set theme colors based on Telegram WebApp theme
+      if (WebApp && WebApp.themeParams) {
+        document.documentElement.style.setProperty('--tg-theme-bg-color', WebApp.themeParams.bg_color);
+        document.documentElement.style.setProperty('--tg-theme-text-color', WebApp.themeParams.text_color);
+        document.documentElement.style.setProperty('--tg-theme-hint-color', WebApp.themeParams.hint_color);
+        document.documentElement.style.setProperty('--tg-theme-link-color', WebApp.themeParams.link_color);
+        document.documentElement.style.setProperty('--tg-theme-button-color', WebApp.themeParams.button_color);
+        document.documentElement.style.setProperty('--tg-theme-button-text-color', WebApp.themeParams.button_text_color);
+        document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', WebApp.themeParams.secondary_bg_color);
 
-    // Back button handling
-    WebApp.BackButton.onClick(() => {
-      window.history.back();
-    });
+        // Back button handling
+        if (WebApp.BackButton) {
+          WebApp.BackButton.onClick(() => {
+            window.history.back();
+          });
+        }
 
-    // Update Telegram WebApp header based on current path
-    updateHeader();
+        // Update Telegram WebApp header based on current path
+        updateHeader();
+      } else {
+        console.warn("WebApp or WebApp.themeParams not available, using default styles");
+      }
+    } catch (error) {
+      console.error("Error setting up Telegram theme:", error);
+    }
   }, []);
 
   const updateHeader = () => {
-    const path = window.location.pathname;
-    
-    // Show BackButton if not on home page
-    if (path !== '/') {
-      WebApp.BackButton.show();
-    } else {
-      WebApp.BackButton.hide();
+    try {
+      if (!WebApp || !WebApp.BackButton) {
+        console.warn("WebApp.BackButton not available");
+        return;
+      }
+      
+      const path = window.location.pathname;
+      
+      // Show BackButton if not on home page
+      if (path !== '/') {
+        WebApp.BackButton.show();
+      } else {
+        WebApp.BackButton.hide();
+      }
+    } catch (error) {
+      console.error("Error updating header:", error);
     }
   };
 
@@ -91,15 +111,17 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <TonConnectUIProvider manifestUrl="/tonconnect-manifest.json">
-      <AppContextProvider>
-        <Router>
-          <div className="app-container">
-            <AppContent />
-          </div>
-        </Router>
-      </AppContextProvider>
-    </TonConnectUIProvider>
+    <ErrorBoundary>
+      <TonConnectUIProvider manifestUrl="/tonconnect-manifest.json">
+        <AppContextProvider>
+          <Router>
+            <div className="app-container">
+              <AppContent />
+            </div>
+          </Router>
+        </AppContextProvider>
+      </TonConnectUIProvider>
+    </ErrorBoundary>
   );
 };
 

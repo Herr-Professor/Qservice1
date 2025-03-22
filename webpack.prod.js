@@ -1,5 +1,8 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const Dotenv = require('dotenv-webpack');
 
 module.exports = {
@@ -22,11 +25,18 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader']
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'postcss-loader'
+        ]
       },
       {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: 'asset/resource',
+        generator: {
+          filename: 'assets/images/[hash][ext][query]'
+        }
       }
     ]
   },
@@ -36,7 +46,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: './public/index.html',
-      favicon: './public/favicon.ico',
+      favicon: false,
       minify: {
         removeComments: true,
         collapseWhitespace: true,
@@ -47,20 +57,32 @@ module.exports = {
         keepClosingSlash: true,
         minifyJS: true,
         minifyCSS: true,
-        minifyURLs: true,
+        minifyURLs: true
       }
     }),
-    new Dotenv()
+    new MiniCssExtractPlugin({
+      filename: '[name].[contenthash].css'
+    }),
+    new Dotenv({
+      path: './.env.production'
+    })
   ],
   optimization: {
     minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          compress: {
+            drop_console: true
+          }
+        }
+      }),
+      new CssMinimizerPlugin()
+    ],
     splitChunks: {
-      chunks: 'all',
-      name: false,
+      chunks: 'all'
     },
-    runtimeChunk: {
-      name: 'runtime',
-    },
+    runtimeChunk: 'single'
   },
   performance: {
     maxEntrypointSize: 512000,
