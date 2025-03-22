@@ -54,10 +54,31 @@ export const AppContextProvider = ({ children }) => {
       try {
         console.log("Starting app initialization...");
         
+        // Check if it's development or production
+        const isDev = process.env.NODE_ENV === 'development';
+        console.log(`Running in ${isDev ? 'development' : 'production'} mode`);
+        
         // Get Telegram user data from WebApp API
         console.log("Attempting to access Telegram WebApp API...");
-        const telegramInitData = window.Telegram?.WebApp?.initData;
+        
+        // Make sure we have window.Telegram before trying to access it
+        if (!window.Telegram) {
+          console.error("window.Telegram is not defined");
+          throw new Error("Telegram WebApp is not available - ensure you're launching from Telegram");
+        }
+        
+        if (!window.Telegram.WebApp) {
+          console.error("window.Telegram.WebApp is not defined");
+          throw new Error("Telegram WebApp API is not available");
+        }
+        
+        const telegramInitData = window.Telegram.WebApp.initData;
         console.log("Telegram initData available:", !!telegramInitData);
+        
+        if (!telegramInitData && !isDev) {
+          console.error("No initData available in production mode");
+          throw new Error("Missing Telegram authentication data - please launch from Telegram");
+        }
         
         // Get start parameter if available from Telegram deeplink
         let startParam = null;
@@ -74,10 +95,18 @@ export const AppContextProvider = ({ children }) => {
         console.log("API URL:", API_URL || 'Not defined');
         
         // Log the initData being sent to the server (NEVER do this in production with real user data)
-        console.log("Sending data:", { initData: telegramInitData ? "[AVAILABLE]" : "[NOT AVAILABLE]" });
+        if (isDev) {
+          console.log("Sending initData:", telegramInitData ? telegramInitData.substring(0, 20) + "..." : "[NOT AVAILABLE]");
+        } else {
+          console.log("Sending initData:", telegramInitData ? "[AVAILABLE]" : "[NOT AVAILABLE]");
+        }
         
         const userData = await loginUser({ initData: telegramInitData }, startParam);
         console.log("User data received:", userData ? "Success" : "Failed");
+        
+        if (!userData) {
+          throw new Error("Failed to retrieve user data from server");
+        }
         
         setUser(userData);
         
@@ -111,17 +140,33 @@ export const AppContextProvider = ({ children }) => {
             data: error.response.data
           } : 'No response object'
         });
-        setError('Failed to initialize app. Please try again later.');
+        
+        // Provide more specific error message based on the error
+        if (error.message.includes("Telegram WebApp is not available")) {
+          setError('Please launch this app from Telegram.');
+        } else if (error.message.includes("Missing Telegram authentication")) {
+          setError('Authentication failed. Please try again or relaunch from Telegram.');
+        } else if (error.message.includes("Failed to retrieve user data")) {
+          setError('Failed to connect to the server. Please check your connection and try again.');
+        } else {
+          setError('Failed to initialize app. Please try again later.');
+        }
       } finally {
         setLoading(false);
       }
     };
 
+    // Check if we have window.Telegram before proceeding
     if (window.Telegram?.WebApp?.initData) {
       console.log("Telegram WebApp detected, initializing...");
       initUser();
+    } else if (process.env.NODE_ENV === 'development') {
+      // In development, we can proceed without Telegram data
+      console.warn("No Telegram WebApp detected but running in development mode. Proceeding with initialization...");
+      initUser();
     } else {
       console.warn("No Telegram WebApp detected. Running in standalone mode or development environment.");
+      setError('Please launch this app from Telegram.');
     }
   }, []);
 

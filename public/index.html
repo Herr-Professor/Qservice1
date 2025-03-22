@@ -11,6 +11,37 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <base href="/">
+  <!-- Script to help with debugging Telegram WebApp issues -->
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      // Log Telegram availability on load
+      console.log('Document loaded, checking Telegram WebApp availability...');
+      
+      if (window.Telegram) {
+        console.log('Telegram object is available');
+        
+        if (window.Telegram.WebApp) {
+          console.log('WebApp is available');
+          console.log('WebApp version:', window.Telegram.WebApp.version);
+          console.log('WebApp platform:', window.Telegram.WebApp.platform);
+          console.log('WebApp initData available:', !!window.Telegram.WebApp.initData);
+          
+          // Listen for WebApp events
+          window.Telegram.WebApp.onEvent('viewportChanged', function() {
+            console.log('Viewport changed');
+          });
+          
+          window.Telegram.WebApp.onEvent('themeChanged', function() {
+            console.log('Theme changed');
+          });
+        } else {
+          console.warn('WebApp object is not available');
+        }
+      } else {
+        console.warn('Telegram object is not available - not running in Telegram WebApp context');
+      }
+    });
+  </script>
 </head>
 <body>
   <div id="root"></div>
