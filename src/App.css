@@ -1,0 +1,65 @@
+/* Main App styles */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 70px; /* Space for the bottom navigation */
+}
+
+/* Utility classes */
+.mt-3 {
+  margin-top: 1rem;
+}
+
+.mb-5 {
+  margin-bottom: 3rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.justify-content-center {
+  justify-content: center;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+/* Override Telegram theme colors */
+:root {
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-text-color: #000000;
+  --tg-theme-hint-color: #7d7d7d;
+  --tg-theme-link-color: #0088cc;
+  --tg-theme-button-color: #2481cc;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f1f1f1;
+}
+
+/* Apply Telegram theme colors */
+body {
+  background-color: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
+}
+
+/* Navigation styles */
+.nav-container {
+  width: 100%;
+  max-width: 100%;
+  background-color: var(--tg-theme-secondary-bg-color);
+} 
