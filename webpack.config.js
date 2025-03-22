@@ -39,14 +39,11 @@ module.exports = {
   ],
   devServer: {
     historyApiFallback: true,
-    allowedHosts: ['qservice1.onrender.com', 'localhost', '127.0.0.1'],
-    host: '0.0.0.0',
+    port: 3000,
+    hot: true,
+    allowedHosts: 'all',
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization'
-    },
-    port: 3000,
-    hot: true
+    }
   }
 };

@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: qservice-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: ALLOW-FROM https://web.telegram.org
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: "*"
+    envVars:
+      - key: NODE_VERSION
+        value: 18.19.1
+      - key: API_URL
+        value: https://qserver-ii0a.onrender.com/api
+      - key: NODE_ENV
+        value: production 
