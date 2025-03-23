@@ -2,27 +2,48 @@
  * API service for interacting with the backend
  */
 
-const API_URL = 'https://qserver-ii0a.onrender.com/api';
+// Determine the API URL based on the environment
+let API_URL;
+
+if (process.env.NODE_ENV === 'production') {
+  // In production, use the environment variable or fallback to the render.com URL
+  API_URL = process.env.REACT_APP_API_URL || 'https://qserver-ii0a.onrender.com/api';
+} else {
+  // In development, prefer the local environment variable if available
+  API_URL = process.env.REACT_APP_API_URL || 'https://qserver-ii0a.onrender.com/api';
+  
+  // Log which API URL we're using in development for debugging
+  console.log(`Using API URL in development: ${API_URL}`);
+}
+
 export { API_URL };
 
 /**
  * Login or create a user via Telegram data
- * @param {Object} initData - Telegram initData object
+ * @param {Object} authData - Either {initData: string} or {userId: number}
  * @param {string} startParam - Start parameter from Telegram deeplink (optional)
  * @returns {Promise<Object>} - The user object
  */
-export const loginUser = async (initData, startParam = null) => {
+export const loginUser = async (authData, startParam = null) => {
   try {
     console.log(`Attempting to login user with API URL: ${API_URL}`);
     
-    if (!initData || !initData.initData) {
-      console.error('Missing initData in loginUser function');
+    // Validate authData - we need either initData or userId
+    if (!authData || (!authData.initData && !authData.userId)) {
+      console.error('Missing authentication data in loginUser function');
       throw new Error('Missing Telegram authentication data');
     }
     
-    const payload = {
-      initData: initData.initData
-    };
+    const payload = {};
+    
+    // Add the authentication data to the payload
+    if (authData.initData) {
+      payload.initData = authData.initData;
+      console.log('Using initData for authentication');
+    } else if (authData.userId) {
+      payload.user_id = authData.userId;
+      console.log('Using user_id for authentication');
+    }
     
     // If we have a start parameter (for referrals), include it
     if (startParam) {

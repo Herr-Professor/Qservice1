@@ -3,6 +3,7 @@ import { Container, Card, Button } from 'react-bootstrap';
 import WebApp from '@twa-dev/sdk';
 import { FaTelegramPlane } from 'react-icons/fa';
 import { AppContext } from '../context/AppContext';
+import { Link } from 'react-router-dom';
 
 const TelegramLoginButton = () => {
   const { setError } = useContext(AppContext);
@@ -106,11 +107,19 @@ const TelegramLoginButton = () => {
               </Button>
               <Button 
                 variant="outline-info" 
-                className="d-flex align-items-center justify-content-center mx-auto"
+                className="d-flex align-items-center justify-content-center mx-auto mb-2"
                 onClick={debugTelegramData}
               >
                 Debug Telegram Data
               </Button>
+              <Link to="/debug" className="d-block text-center mt-2">
+                <Button 
+                  variant="outline-success" 
+                  className="d-flex align-items-center justify-content-center mx-auto"
+                >
+                  Open Debug Page
+                </Button>
+              </Link>
             </>
           )}
         </Card.Body>

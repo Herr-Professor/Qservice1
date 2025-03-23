@@ -8,6 +8,41 @@ const PORT = process.env.PORT || 3000;
 // Enable gzip compression for faster loading
 app.use(compression());
 
+// Request logging middleware for debugging
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  const { method, url, headers } = req;
+  
+  console.log(`[${timestamp}] ${method} ${url}`);
+  
+  // Log only important headers
+  const importantHeaders = [
+    'user-agent', 
+    'origin', 
+    'referer', 
+    'content-type', 
+    'x-telegram-bot-api-secret-token'
+  ];
+  
+  const loggedHeaders = {};
+  importantHeaders.forEach(header => {
+    if (headers[header]) {
+      loggedHeaders[header] = headers[header];
+    }
+  });
+  
+  console.log('Headers:', JSON.stringify(loggedHeaders));
+  
+  // Log response
+  const originalSend = res.send;
+  res.send = function(body) {
+    console.log(`[${timestamp}] Response status: ${res.statusCode}`);
+    return originalSend.call(this, body);
+  };
+  
+  next();
+});
+
 // Serve static files from the dist directory
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -23,6 +58,17 @@ app.use((req, res, next) => {
   }
   
   next();
+});
+
+// Special route for Telegram debug info
+app.get('/telegram-debug', (req, res) => {
+  res.json({
+    message: 'Telegram WebApp Debug Endpoint',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    headers: req.headers,
+    query: req.query
+  });
 });
 
 // API proxy (optional - only needed if your backend isn't separate)
@@ -44,12 +90,12 @@ app.get('*', (req, res, next) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Server error:', err.stack);
   if (!res.headersSent) {
     res.status(500).send('Something broke!');
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
 }); 

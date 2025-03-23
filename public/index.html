@@ -11,6 +11,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <base href="/">
+  <!-- Telegram WebApp Debug Script -->
+  <script src="/telegram-debug.js"></script>
   <!-- Script to help with debugging Telegram WebApp issues -->
   <script>
     window.addEventListener('DOMContentLoaded', function() {
@@ -34,6 +36,14 @@
           window.Telegram.WebApp.onEvent('themeChanged', function() {
             console.log('Theme changed');
           });
+          
+          // Call ready method to tell Telegram the Mini App is ready
+          try {
+            window.Telegram.WebApp.ready();
+            console.log('WebApp.ready() called successfully');
+          } catch (error) {
+            console.error('Error calling WebApp.ready():', error);
+          }
         } else {
           console.warn('WebApp object is not available');
         }

@@ -75,8 +75,18 @@ export const AppContextProvider = ({ children }) => {
         const telegramInitData = window.Telegram.WebApp.initData;
         console.log("Telegram initData available:", !!telegramInitData);
         
-        if (!telegramInitData && !isDev) {
-          console.error("No initData available in production mode");
+        // Check if we have initDataUnsafe (user info) even if we don't have initData
+        // This can happen when launched from keyboard or inline mode
+        const hasUserData = !!window.Telegram.WebApp.initDataUnsafe?.user;
+        console.log("User data available:", hasUserData);
+        
+        // Log all available initDataUnsafe properties to help debug
+        console.log("Available initDataUnsafe properties:", 
+          Object.keys(window.Telegram.WebApp.initDataUnsafe || {}).join(', '));
+          
+        // In production, we now accept either proper initData OR user data from initDataUnsafe
+        if (!isDev && !telegramInitData && !hasUserData) {
+          console.error("No Telegram user data available in production mode");
           throw new Error("Missing Telegram authentication data - please launch from Telegram");
         }
         
@@ -89,6 +99,14 @@ export const AppContextProvider = ({ children }) => {
           console.log("No start_param available");
         }
         
+        // Create userId manually from initDataUnsafe if initData is not available
+        // This handles cases where the app is launched from keyboard or inline mode
+        let manualUserId = null;
+        if (!telegramInitData && hasUserData) {
+          manualUserId = window.Telegram.WebApp.initDataUnsafe.user.id;
+          console.log("Using user ID from initDataUnsafe:", manualUserId);
+        }
+        
         // Login or create user
         setLoading(true);
         console.log("Calling backend API for user login/creation...");
@@ -97,11 +115,18 @@ export const AppContextProvider = ({ children }) => {
         // Log the initData being sent to the server (NEVER do this in production with real user data)
         if (isDev) {
           console.log("Sending initData:", telegramInitData ? telegramInitData.substring(0, 20) + "..." : "[NOT AVAILABLE]");
+          console.log("User ID from initDataUnsafe:", manualUserId);
         } else {
           console.log("Sending initData:", telegramInitData ? "[AVAILABLE]" : "[NOT AVAILABLE]");
+          console.log("User ID available:", !!manualUserId);
         }
         
-        const userData = await loginUser({ initData: telegramInitData }, startParam);
+        // Send either initData or manually created object with user ID
+        const userData = await loginUser(
+          telegramInitData ? { initData: telegramInitData } : { userId: manualUserId },
+          startParam
+        );
+        
         console.log("User data received:", userData ? "Success" : "Failed");
         
         if (!userData) {
@@ -157,7 +182,7 @@ export const AppContextProvider = ({ children }) => {
     };
 
     // Check if we have window.Telegram before proceeding
-    if (window.Telegram?.WebApp?.initData) {
+    if (window.Telegram?.WebApp) {
       console.log("Telegram WebApp detected, initializing...");
       initUser();
     } else if (process.env.NODE_ENV === 'development') {
@@ -165,7 +190,7 @@ export const AppContextProvider = ({ children }) => {
       console.warn("No Telegram WebApp detected but running in development mode. Proceeding with initialization...");
       initUser();
     } else {
-      console.warn("No Telegram WebApp detected. Running in standalone mode or development environment.");
+      console.warn("No Telegram WebApp detected. Running in standalone mode or production environment.");
       setError('Please launch this app from Telegram.');
     }
   }, []);

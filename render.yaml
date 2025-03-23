@@ -9,6 +9,9 @@ services:
         name: X-Frame-Options
         value: ALLOW-FROM https://web.telegram.org
       - path: /*
+        name: Content-Security-Policy
+        value: "default-src * self blob: data: gap:; style-src * self 'unsafe-inline' blob: data: gap:; script-src * 'self' 'unsafe-eval' 'unsafe-inline' blob: data: gap:; object-src * 'self' blob: data: gap:; img-src * self 'unsafe-inline' blob: data: gap:; connect-src self * 'unsafe-inline' blob: data: gap:; frame-src * self blob: data: gap:;"
+      - path: /*
         name: Access-Control-Allow-Origin
         value: "*"
       - path: /*
@@ -23,4 +26,12 @@ services:
       - key: API_URL
         value: https://qserver-ii0a.onrender.com/api
       - key: NODE_ENV
-        value: production 
+        value: production
+      - key: REACT_APP_API_URL
+        value: https://qserver-ii0a.onrender.com/api
+      - key: DEBUG
+        value: "true"
+      - key: TELEGRAM_APP_ENABLED
+        value: "true"
+      - key: LOG_LEVEL
+        value: "verbose" 

@@ -77,6 +77,32 @@ This error typically occurs when:
 
 6. **Check Console Logs**: The app includes comprehensive logging to help diagnose issues.
 
+### Advanced Telegram WebApp Debugging
+
+1. **Debug Page**: Access the built-in debug page at `/debug` to see detailed information about the Telegram WebApp environment.
+
+2. **URL Debug Parameter**: Add `?tgWebAppDebug=1` to your app's URL to enable the floating debug panel, which shows real-time Telegram WebApp information.
+
+3. **Keyboard Button Launch**: When launching from a keyboard button or inline mode (not from a direct link), note that the `initData` may be empty. In this case, the app uses the user information from `initDataUnsafe` for authentication.
+
+4. **Bot Settings Check**: Verify in BotFather that:
+   - Inline mode is enabled (if launching from inline queries)
+   - Menu button is properly configured (if launching from bot menu)
+   - Domain is allowed in the bot settings
+
+5. **initData Structure**: For debugging, know that the initData contains:
+   - `query_id`: Unique ID for the query
+   - `user`: Telegram user data
+   - `auth_date`: Authentication timestamp
+   - `hash`: Hash signature for validation
+
+6. **Common Errors**:
+   - "Telegram WebApp is not available" - Not launching from Telegram
+   - "Missing Telegram authentication" - initData not provided or invalid
+   - "WebApp.ready() failed" - Error in WebApp initialization
+
+7. **Testing in Development**: Use the mock Telegram login functionality in development to simulate Telegram data.
+
 ### "Can't set headers after they are sent" Error
 
 This server error occurs when:

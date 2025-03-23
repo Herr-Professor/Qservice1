@@ -10,6 +10,7 @@ import EscrowPage from './pages/EscrowPage';
 import ShopPage from './pages/ShopPage';
 import ReferralsPage from './pages/ReferralsPage';
 import ProfilePage from './pages/ProfilePage';
+import TelegramDebugPage from './pages/TelegramDebugPage';
 
 // Context
 import { AppContextProvider, AppContext, useAppContext } from './context/AppContext';
@@ -100,6 +101,7 @@ const AppContent = () => {
             <Route path="/shop" element={<ShopPage />} />
             <Route path="/referrals" element={<ReferralsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/debug" element={<TelegramDebugPage />} />
             <Route path="*" element={<Navigate to="/game" replace />} />
           </Routes>
         </div>
